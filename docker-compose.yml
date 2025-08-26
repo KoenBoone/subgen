@@ -1,8 +1,7 @@
-#docker-compose.yml
 version: '3.8'
 services:
   subgen:
-    container_name: subgen2
+    container_name: subgen3
     tty: true
     image: mccloud/subgen
     runtime: nvidia
@@ -14,19 +13,19 @@ services:
               count: all
               capabilities: [gpu]
     environment:
-       - "WHISPER_MODEL=large-v3-turbo"
-       - "WHISPER_THREADS=4"
-       - "PROCADDEDMEDIA=True"
+       - "WHISPER_MODEL=medium-v3"           # medium model fits 6GB VRAM
+       - "WHISPER_THREADS=2"                  # reduce threads to save VRAM
+       - "PROCADDEDMEDIA=True"                # skip files with existing subtitles
        - "PROCMEDIAONPLAY=False"
        - "NAMESUBLANG=en"
        - "SKIPIFINTERNALSUBLANG=eng"
        - "WEBHOOKPORT=9000"
-       - "CONCURRENT_TRANSCRIPTIONS=2"
-       - "WORD_LEVEL_HIGHLIGHT=False"
+       - "CONCURRENT_TRANSCRIPTIONS=1"       # Bazarr sends 1 file at a time
+       - "WORD_LEVEL_HIGHLIGHT=False"         # reduces memory usage
        - "DEBUG=True"
        - "USE_PATH_MAPPING=False"
-       - "TRANSCRIBE_DEVICE=cuda"
-       - "CLEAR_VRAM_ON_COMPLETE=True"
+       - "TRANSCRIBE_DEVICE=cuda"             # GPU transcription
+       - "CLEAR_VRAM_ON_COMPLETE=True"        # frees VRAM after each file
        - "MODEL_PATH=/data/whisper/mccloud/subgen/models"
        - "UPDATE=True"
        - "APPEND=False"
@@ -36,5 +35,6 @@ services:
        - "CUSTOM_REGROUP=cm_sl=84_sl=42++++++1"
     volumes:
        - "${APPDATA}/subgen/models:/data/whisper/mccloud/subgen/models"
+       - "./subgen.env:/subgen/subgen.env:ro"  # optional, for Bazarr integration
     ports:
        - "9000:9000"
